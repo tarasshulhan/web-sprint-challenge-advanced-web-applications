@@ -1,12 +1,76 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useState } from 'react';
+import { useHistory } from 'react-router';
+import styled from 'styled-components'
+import axios from 'axios';
+
+const ininialState = {
+    credentials: {
+      username: '',
+      password: ''
+    },
+    error: ''
+}
 
 const Login = () => {
+
+    const [state, setState] = useState(ininialState);
+    const {push} = useHistory();
+
+    const handleChange = e => {
+        setState({
+          credentials: {
+            ...state.credentials,
+            [e.target.name]: e.target.value
+          }
+        });
+      };
+
+    const handleLogin = e => {
+        e.preventDefault();
     
+        axios.post('http://localhost:5000/api/login', state.credentials)
+          .then(resp=> {
+            localStorage.setItem('token', resp.data.token);
+            push('/view');
+          })
+          .catch(err=> { 
+            console.log(err);
+            setState({
+                ...state,
+                error: 'Login was not successful, please try again.'
+            })
+          })
+      };
+
     return(<ComponentContainer>
         <ModalContainer>
             <h1>Welcome to Blogger Pro</h1>
             <h2>Please enter your account information.</h2>
+            <div>
+                <form onSubmit={handleLogin}>
+                <Label>Username</Label>
+                <Input
+                    id="username"
+                    type="text"
+                    name="username"
+                    value={state.credentials.username}
+                    onChange={handleChange}
+                />
+
+                <LineBreak/>
+
+                <Label>Password</Label>
+                <Input
+                    id="password"
+                    type="password"
+                    name="password"
+                    value={state.credentials.password}
+                    onChange={handleChange}
+                />
+                <p id="error">{state.error}</p>
+                <Button id="submit">Log in</Button>
+                </form>
+            </div>
         </ModalContainer>
     </ComponentContainer>);
 }
@@ -54,4 +118,7 @@ const Input = styled.input`
 const Button = styled.button`
     padding:1rem;
     width: 100%;
+`
+const LineBreak = styled.div`
+    height: 1vh
 `
